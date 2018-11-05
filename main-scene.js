@@ -11,46 +11,101 @@ class Assignment_Two_Test extends Scene_Component
         const r = context.width/context.height;
         context.globals.graphics_state.projection_transform = Mat4.perspective( Math.PI/4, r, .1, 1000 );
 
-        const shapes = { torus:  new Torus( 15, 15 ),
-                         torus2: new ( Torus.prototype.make_flat_shaded_version() )( 15, 15 )
- 
-                                // TODO:  Fill in as many additional shape instances as needed in this key/value table.
-                                //        (Requirement 1)
+        const shapes = { 
+//                          torus2: new ( Torus.prototype.make_flat_shaded_version() )( 15, 15 ),
+                         sun: new Subdivision_Sphere(4),
+                         planet_1: new (Subdivision_Sphere.prototype.make_flat_shaded_version() )(2),
+                         planet_2: new Subdivision_Sphere(3),
+                         planet_3: new Subdivision_Sphere(4),
+                         rings: new Torus( 15, 15 ),
+                         planet_4: new Subdivision_Sphere(4),
+                         moon: new (Subdivision_Sphere.prototype.make_flat_shaded_version() )(1)
                        }
         this.submit_shapes( context, shapes );
                                      
                                      // Make some Material objects available to you:
         this.materials =
           { test:     context.get_instance( Phong_Shader ).material( Color.of( 1,1,0,1 ), { ambient:.2 } ),
-            ring:     context.get_instance( Ring_Shader  ).material()
+            ring:     context.get_instance( Ring_Shader  ).material(),
+            sun:      context.get_instance( Phong_Shader ).material( Color.of(0,0,0,1), { ambient:1 } ),
+            planet_1:   context.get_instance( Phong_Shader ).material( Color.of(190/256,195/256,200/256,1), { ambient:0, specularity:0} ),
+            planet_2:   context.get_instance( Phong_Shader ).material( Color.of(6/256,79/256,64/256,1), { ambient:0, specularity:1, diffusivity:.3, gouraud:1} ),
+            planet_3:   context.get_instance( Phong_Shader ).material( Color.of(192/256,147/256,114/256,1), { ambient:0, specularity:1, diffusivity:1} ),
+            planet_4:   context.get_instance( Phong_Shader ).material( Color.of(17/256,30/256,108/256,1), { ambient:0, specularity:1, diffusivity:.5 } )
 
-                                // TODO:  Fill in as many additional material objects as needed in this key/value table.
-                                //        (Requirement 1)
           }
 
-        this.lights = [ new Light( Vec.of( 5,-10,5,1 ), Color.of( 0, 1, 1, 1 ), 1000 ) ];
+        this.lights = [ new Light( Vec.of( 5,-10,5,1 ), Color.of( 0, 1, 1, 1 ), 1000 ),
+                        new Light( Vec.of( 0,0,0,1 ), Color.of( 1, 1, 1, 1 ), 1000 )];
+        this.planet_1
+        this.planet_2
+        this.planet_3
+        this.planet_4
+        this.planet_5
+        this.moon
       }
     make_control_panel()            // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
-      { this.key_triggered_button( "View solar system",  [ "0" ], () => this.attached = () => this.initial_camera_location );
+      { this.key_triggered_button( "View solar system",  [ "0" ], (a) => this.attached = () => this.initial_camera_location );
         this.new_line();
-        this.key_triggered_button( "Attach to planet 1", [ "1" ], () => this.attached = () => this.planet_1 );
-        this.key_triggered_button( "Attach to planet 2", [ "2" ], () => this.attached = () => this.planet_2 ); this.new_line();
-        this.key_triggered_button( "Attach to planet 3", [ "3" ], () => this.attached = () => this.planet_3 );
-        this.key_triggered_button( "Attach to planet 4", [ "4" ], () => this.attached = () => this.planet_4 ); this.new_line();
-        this.key_triggered_button( "Attach to planet 5", [ "5" ], () => this.attached = () => this.planet_5 );
-        this.key_triggered_button( "Attach to moon",     [ "m" ], () => this.attached = () => this.moon     );
+        this.key_triggered_button( "Attach to planet 1", [ "1" ], (a) => this.attached = () => this.planet_1 );
+        this.key_triggered_button( "Attach to planet 2", [ "2" ], (a) => this.attached = () => this.planet_2 ); this.new_line();
+        this.key_triggered_button( "Attach to planet 3", [ "3" ], (a) => this.attached = () => this.planet_3 );
+        this.key_triggered_button( "Attach to planet 4", [ "4" ], (a) => this.attached = () => this.planet_4 ); this.new_line();
+        this.key_triggered_button( "Attach to planet 5", [ "5" ], (a) => this.attached = () => this.planet_5 );
+        this.key_triggered_button( "Attach to moon",     [ "m" ], (a) => this.attached = () => this.moon     );
       }
+    orbitOfPlanet(model_transform, atRadius, t) {
+      return            model_transform.times(Mat4.translation([-1*atRadius,0,0]))
+                                       .times(Mat4.rotation(10*t/atRadius, Vec.of(0,1,0)))
+                                       .times(Mat4.translation([atRadius,0,0]))
+    }
     display( graphics_state )
       { graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
-
+        let model_transform = Mat4.identity();
+        let distancefromcentre = 0;
+        const initalDistance = 5;
+        const planetDistance = 3; 
+        let desired;       
         
-
         // TODO:  Fill in matrix operations and drawing code to draw the solar system scene (Requirements 2 and 3)
 
+        // Sun
+        let a = 2 + Math.sin(2*Math.PI*t/5);
+        let changeColor = (a-1)/2; 
+        this.lights[1].color = Color.of(changeColor, 0, 1-changeColor,1);
+        this.lights[1].size = 10**a
+        this.shapes.sun.draw(graphics_state, model_transform.times(Mat4.scale([a,a,a])), this.materials.sun.override({color:Color.of(changeColor,0,1-changeColor,1)}))
 
-        this.shapes.torus2.draw( graphics_state, Mat4.identity(), this.materials.test );
+        //Planet 1
+        distancefromcentre += initalDistance; 
+        model_transform = model_transform.times(Mat4.translation([5,0,0]));
+        this.shapes.planet_1.draw(graphics_state, this.planet_1=this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(t, Vec.of(0,1,0))), this.materials.planet_1);
 
+        //Planet 2
+        distancefromcentre += planetDistance; 
+        model_transform = model_transform.times(Mat4.translation([3,0,0]));
+        if(Math.floor(t)%2==0)
+          this.shapes.planet_2.draw(graphics_state, this.planet_2=this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(t, Vec.of(0,1,0))), this.materials.planet_2.override({gouraud:0}));
+        else 
+          this.shapes.planet_2.draw(graphics_state, this.planet_2=this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(t, Vec.of(0,1,0))), this.materials.planet_2);
+
+        //Planet 3
+        distancefromcentre += planetDistance; 
+        model_transform = model_transform.times(Mat4.translation([3,0,0]));
+        this.shapes.planet_3.draw(graphics_state, this.planet_3 = this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(2*t, Vec.of(0,1,.4))), this.materials.planet_3);
+        this.shapes.rings.draw(graphics_state, this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(2*t, Vec.of(0,1,.4))).times(Mat4.scale([1,1,.25])), this.materials.planet_3);
+
+        //Planet 4
+        distancefromcentre += planetDistance; 
+        model_transform = model_transform.times(Mat4.translation([3,0,0]));
+        model_transform = this.orbitOfPlanet(model_transform, distancefromcentre, t);
+        this.shapes.planet_4.draw(graphics_state, this.planet_4 = model_transform, this.materials.planet_4);
+        this.shapes.moon.draw(graphics_state, this.moon = model_transform.times(Mat4.rotation(3*t, Vec.of(0,1,0))).times(Mat4.translation([2,0,0])), this.materials.planet_1);
+  
+        if(typeof(this.attached) != undefined) {
+          graphics_state.camera_transform = Mat4.inverse(this.attached.times(Mat4.translation(-5,0,0)))
+        }
       }
   }
 
