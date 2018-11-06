@@ -495,3 +495,27 @@ class Torus extends Shape                                         // Build a don
 
         Surface_Of_Revolution.insert_transformed_copy_into( this, [ rows, columns, circle_points ] );         
       } }
+
+window.Torus2 = window.classes.Torus2 =
+class Torus2 extends Shape                                         // Build a donut shape.  An example of a surface of revolution.
+  { constructor( rows, columns )  
+      { super( "positions", "normals", "texture_coords" );
+        const circle_points = Array( rows ).fill( Vec.of( .075,0,0 ) )
+                                           .map( (p,i,a) => Mat4.translation([ -2,0,0 ])
+                                                    .times( Mat4.rotation( i/(a.length-1) * 2*Math.PI, Vec.of( 0,-1,0 ) ) )
+                                                    .times( p.to4(1) ).to3() );
+
+        Surface_Of_Revolution.insert_transformed_copy_into( this, [ rows, columns, circle_points ] );         
+      } }
+
+window.weirdSphere = window.classes.weirdSphere =
+class weirdSphere extends Shape                                         
+  { constructor( rows, columns )  
+      { super( "positions", "normals", "texture_coords" );
+        const circle_points = Array( rows ).fill( Vec.of( 0,0,1 ) )
+                                           .map( (p,i,a) => Mat4.translation([ 0,0,0 ])
+                                                    .times( Mat4.rotation( i/(a.length-1) *Math.PI, Vec.of( 0,-1,0 ) ) )
+                                                    .times( p.to4(1) ).to3() );
+
+        Surface_Of_Revolution.insert_transformed_copy_into( this, [ rows, columns, circle_points ] );         
+      } }

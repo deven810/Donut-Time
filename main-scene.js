@@ -18,7 +18,9 @@ class Assignment_Two_Test extends Scene_Component
                          planet_3: new Subdivision_Sphere(4),
                          fatRing: new Torus( 15, 15 ),
                          planet_4: new Subdivision_Sphere(4),
-                         moon: new (Subdivision_Sphere.prototype.make_flat_shaded_version() )(1)
+                         moon: new (Subdivision_Sphere.prototype.make_flat_shaded_version() )(1),
+                         thinRing: new Torus2(25, 30), //finer rings defined in dependencies.js
+                         planet_5: new weirdSphere(6,10)
                        }
         this.submit_shapes( context, shapes );
                                      
@@ -30,8 +32,8 @@ class Assignment_Two_Test extends Scene_Component
             planet_1:   context.get_instance( Phong_Shader ).material( Color.of(190/256,195/256,200/256,1), { ambient:0, specularity:0} ),
             planet_2:   context.get_instance( Phong_Shader ).material( Color.of(6/256,79/256,64/256,1), { ambient:0, specularity:1, diffusivity:.3, gouraud:1} ),
             planet_3:   context.get_instance( Phong_Shader ).material( Color.of(192/256,147/256,114/256,1), { ambient:0, specularity:1, diffusivity:1} ),
-            planet_4:   context.get_instance( Phong_Shader ).material( Color.of(17/256,30/256,108/256,1), { ambient:0, specularity:1, diffusivity:.5 } )
-
+            planet_4:   context.get_instance( Phong_Shader ).material( Color.of(17/256,30/256,108/256,1), { ambient:0, specularity:1, diffusivity:.5 } ),
+            planet_5:   context.get_instance( Phong_Shader ).material( Color.of(190/256,195/256,200/256,1), { ambient:0, specularity:1, diffusivity:1} )
           }
 
         this.lights = [ new Light( Vec.of( 0,0,0,1 ), Color.of( 0, 0, 1, 1 ), 1000 )];
@@ -73,6 +75,11 @@ class Assignment_Two_Test extends Scene_Component
         let changeColor = (a-1)/2; 
         let sunlight = new Light( Vec.of( 0,0,0,1 ), Color.of(changeColor, 0, 1-changeColor,1), 10 ** a )
         graphics_state.lights = [sunlight];
+         
+
+        //EDDDDIIIITTTT!!!!!
+
+
         this.shapes.sun.draw(graphics_state, model_transform.times(Mat4.scale([a,a,a])), this.materials.sun.override({color:Color.of(changeColor,0,1-changeColor,1)}))
 
         //Planet 1
@@ -93,14 +100,22 @@ class Assignment_Two_Test extends Scene_Component
         distancefromcentre += planetDistance; 
         model_transform = model_transform.times(Mat4.translation([3,0,0]));
         this.shapes.planet_3.draw(graphics_state, this.planet_3 = this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(2*t, Vec.of(0,1,.4))), this.materials.planet_3);
-        this.shapes.fatRing.draw(graphics_state, this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(2*t, Vec.of(0,1,.4))).times(Mat4.scale([1,1,.25])), this.materials.planet_3);
+//         this.shapes.fatRing.draw(graphics_state, this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(2*t, Vec.of(0,1,.4))).times(Mat4.scale([1,1,.25])), this.materials.planet_3);
+//         this.shapes.planet_3.draw(graphics_state, this.planet_3 = this.orbitOfPlanet(model_transform, distancefromcentre, t), this.materials.planet_3);
+        this.shapes.thinRing.draw(graphics_state, this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(2*t, Vec.of(0,1,.4))).times(Mat4.scale([.6,.6,1])), this.materials.ring);
+        this.shapes.thinRing.draw(graphics_state, this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(2*t, Vec.of(0,1,.4))).times(Mat4.scale([.8,.8,1])), this.materials.ring);
+        this.shapes.thinRing.draw(graphics_state, this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(2*t, Vec.of(0,1,.4))).times(Mat4.scale([1.2,1.2,1])), this.materials.ring);
+        this.shapes.thinRing.draw(graphics_state, this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(2*t, Vec.of(0,1,.4))).times(Mat4.scale([1,1,1])), this.materials.ring);
 
         //Planet 4
         distancefromcentre += planetDistance; 
         model_transform = model_transform.times(Mat4.translation([3,0,0]));
-        model_transform = this.orbitOfPlanet(model_transform, distancefromcentre, t);
-        this.shapes.planet_4.draw(graphics_state, this.planet_4 = model_transform.times(Mat4.rotation(2*t, Vec.of(0,1,0))), this.materials.planet_4);
-        this.shapes.moon.draw(graphics_state, this.moon = model_transform.times(Mat4.rotation(3*t, Vec.of(0,1,0))).times(Mat4.translation([2,0,0])), this.materials.planet_1);
+        this.shapes.planet_4.draw(graphics_state, this.planet_4 = this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(2*t, Vec.of(0,1,0))), this.materials.planet_4);
+        this.shapes.moon.draw(graphics_state, this.moon = this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(3*t, Vec.of(0,1,0))).times(Mat4.translation([2,0,0])), this.materials.planet_1);
+  
+        distancefromcentre += planetDistance; 
+        model_transform = model_transform.times(Mat4.translation([3,0,0]));
+        this.shapes.planet_5.draw(graphics_state, this.planet_5 = this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(2*t, Vec.of(0,1,0))), this.materials.planet_5);
   
         if(typeof(this.attached) == "function") {
           var data = Mat4.inverse(this.attached().times(Mat4.translation([0,0,5])));
@@ -146,6 +161,7 @@ class Ring_Shader extends Shader              // Subclasses of Shader each store
 
         void main()
         { 
+         gl_Position = projection_camera_transform * model_transform * vec4(object_space_pos, 1.0); 
           
         }`;           // TODO:  Complete the main function of the vertex shader (Extra Credit Part II).
     }
@@ -153,6 +169,9 @@ class Ring_Shader extends Shader              // Subclasses of Shader each store
     { return `
         void main()
         { 
+           vec4 color = vec4(.75,.575,.445,1.0);
+           float d = (sin(distance(position, center))+1.0)/2.0;
+           gl_FragColor = vec4(color.xyz * d, 1.0);
         }`;           // TODO:  Complete the main function of the fragment shader (Extra Credit Part II).
     }
 }
