@@ -12,12 +12,11 @@ class Assignment_Two_Test extends Scene_Component
         context.globals.graphics_state.projection_transform = Mat4.perspective( Math.PI/4, r, .1, 1000 );
 
         const shapes = { 
-//                          torus2: new ( Torus.prototype.make_flat_shaded_version() )( 15, 15 ),
                          sun: new Subdivision_Sphere(4),
                          planet_1: new (Subdivision_Sphere.prototype.make_flat_shaded_version() )(2),
                          planet_2: new Subdivision_Sphere(3),
                          planet_3: new Subdivision_Sphere(4),
-                         rings: new Torus( 15, 15 ),
+                         fatRing: new Torus( 15, 15 ),
                          planet_4: new Subdivision_Sphere(4),
                          moon: new (Subdivision_Sphere.prototype.make_flat_shaded_version() )(1)
                        }
@@ -35,76 +34,79 @@ class Assignment_Two_Test extends Scene_Component
 
           }
 
-        this.lights = [ new Light( Vec.of( 5,-10,5,1 ), Color.of( 0, 1, 1, 1 ), 1000 ),
-                        new Light( Vec.of( 0,0,0,1 ), Color.of( 1, 1, 1, 1 ), 1000 )];
-        this.planet_1
-        this.planet_2
-        this.planet_3
-        this.planet_4
-        this.planet_5
-        this.moon
+        this.lights = [ new Light( Vec.of( 0,0,0,1 ), Color.of( 0, 0, 1, 1 ), 1000 )];
+        this.planet_1;
+        this.planet_2;
+        this.planet_3;
+        this.planet_4;
+        this.planet_5;
+        this.moon;
       }
     make_control_panel()            // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
-      { this.key_triggered_button( "View solar system",  [ "0" ], (a) => this.attached = () => this.initial_camera_location );
+      { this.key_triggered_button( "View solar system",  [ "0" ], () => this.attached = () => this.initial_camera_location );
         this.new_line();
-        this.key_triggered_button( "Attach to planet 1", [ "1" ], (a) => this.attached = () => this.planet_1 );
-        this.key_triggered_button( "Attach to planet 2", [ "2" ], (a) => this.attached = () => this.planet_2 ); this.new_line();
-        this.key_triggered_button( "Attach to planet 3", [ "3" ], (a) => this.attached = () => this.planet_3 );
-        this.key_triggered_button( "Attach to planet 4", [ "4" ], (a) => this.attached = () => this.planet_4 ); this.new_line();
-        this.key_triggered_button( "Attach to planet 5", [ "5" ], (a) => this.attached = () => this.planet_5 );
-        this.key_triggered_button( "Attach to moon",     [ "m" ], (a) => this.attached = () => this.moon     );
+        this.key_triggered_button( "Attach to planet 1", [ "1" ], () => this.attached = () => this.planet_1 );
+        this.key_triggered_button( "Attach to planet 2", [ "2" ], () => this.attached = () => this.planet_2 ); this.new_line();
+        this.key_triggered_button( "Attach to planet 3", [ "3" ], () => this.attached = () => this.planet_3 );
+        this.key_triggered_button( "Attach to planet 4", [ "4" ], () => this.attached = () => this.planet_4 ); this.new_line();
+        this.key_triggered_button( "Attach to planet 5", [ "5" ], () => this.attached = () => this.planet_5 );
+        this.key_triggered_button( "Attach to moon",     [ "m" ], () => this.attached = () => this.moon     );
       }
     orbitOfPlanet(model_transform, atRadius, t) {
       return            model_transform.times(Mat4.translation([-1*atRadius,0,0]))
-                                       .times(Mat4.rotation(10*t/atRadius, Vec.of(0,1,0)))
+                                       .times(Mat4.rotation(5*t/atRadius, Vec.of(0,1,0)))
                                        .times(Mat4.translation([atRadius,0,0]))
     }
     display( graphics_state )
-      { graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
+      { 
+//         this.lights[0].color = Color.of(changeColor, 0, 1-changeColor,1);
+//         this.lights[0].size = 10 ** a;
+//         graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
         let model_transform = Mat4.identity();
         let distancefromcentre = 0;
         const initalDistance = 5;
         const planetDistance = 3; 
-        let desired;       
         
-        // TODO:  Fill in matrix operations and drawing code to draw the solar system scene (Requirements 2 and 3)
-
         // Sun
         let a = 2 + Math.sin(2*Math.PI*t/5);
         let changeColor = (a-1)/2; 
-        this.lights[1].color = Color.of(changeColor, 0, 1-changeColor,1);
-        this.lights[1].size = 10**a
+        let sunlight = new Light( Vec.of( 0,0,0,1 ), Color.of(changeColor, 0, 1-changeColor,1), 10 ** a )
+        graphics_state.lights = [sunlight];
         this.shapes.sun.draw(graphics_state, model_transform.times(Mat4.scale([a,a,a])), this.materials.sun.override({color:Color.of(changeColor,0,1-changeColor,1)}))
 
         //Planet 1
         distancefromcentre += initalDistance; 
         model_transform = model_transform.times(Mat4.translation([5,0,0]));
-        this.shapes.planet_1.draw(graphics_state, this.planet_1=this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(t, Vec.of(0,1,0))), this.materials.planet_1);
+        this.planet_1=this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(t, Vec.of(0,1,0)));
+        this.shapes.planet_1.draw(graphics_state, this.planet_1, this.materials.planet_1);
 
         //Planet 2
         distancefromcentre += planetDistance; 
         model_transform = model_transform.times(Mat4.translation([3,0,0]));
         if(Math.floor(t)%2==0)
-          this.shapes.planet_2.draw(graphics_state, this.planet_2=this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(t, Vec.of(0,1,0))), this.materials.planet_2.override({gouraud:0}));
+          this.shapes.planet_2.draw(graphics_state, this.planet_2=this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(2*t, Vec.of(0,1,0))), this.materials.planet_2.override({gouraud:0}));
         else 
-          this.shapes.planet_2.draw(graphics_state, this.planet_2=this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(t, Vec.of(0,1,0))), this.materials.planet_2);
+          this.shapes.planet_2.draw(graphics_state, this.planet_2=this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(2*t, Vec.of(0,1,0))), this.materials.planet_2);
 
         //Planet 3
         distancefromcentre += planetDistance; 
         model_transform = model_transform.times(Mat4.translation([3,0,0]));
         this.shapes.planet_3.draw(graphics_state, this.planet_3 = this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(2*t, Vec.of(0,1,.4))), this.materials.planet_3);
-        this.shapes.rings.draw(graphics_state, this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(2*t, Vec.of(0,1,.4))).times(Mat4.scale([1,1,.25])), this.materials.planet_3);
+        this.shapes.fatRing.draw(graphics_state, this.orbitOfPlanet(model_transform, distancefromcentre, t).times(Mat4.rotation(2*t, Vec.of(0,1,.4))).times(Mat4.scale([1,1,.25])), this.materials.planet_3);
 
         //Planet 4
         distancefromcentre += planetDistance; 
         model_transform = model_transform.times(Mat4.translation([3,0,0]));
         model_transform = this.orbitOfPlanet(model_transform, distancefromcentre, t);
-        this.shapes.planet_4.draw(graphics_state, this.planet_4 = model_transform, this.materials.planet_4);
+        this.shapes.planet_4.draw(graphics_state, this.planet_4 = model_transform.times(Mat4.rotation(2*t, Vec.of(0,1,0))), this.materials.planet_4);
         this.shapes.moon.draw(graphics_state, this.moon = model_transform.times(Mat4.rotation(3*t, Vec.of(0,1,0))).times(Mat4.translation([2,0,0])), this.materials.planet_1);
   
-        if(typeof(this.attached) != undefined) {
-          graphics_state.camera_transform = Mat4.inverse(this.attached.times(Mat4.translation(-5,0,0)))
+        if(typeof(this.attached) == "function") {
+          var data = Mat4.inverse(this.attached().times(Mat4.translation([0,0,5])));
+//           console.log(data)
+//          console.log(Mat4.inverse(data))
+          graphics_state.camera_transform = data.map( (x,i) => Vec.from( graphics_state.camera_transform[i] ).mix( x, 0.1) ); 
         }
       }
   }
@@ -144,6 +146,7 @@ class Ring_Shader extends Shader              // Subclasses of Shader each store
 
         void main()
         { 
+          
         }`;           // TODO:  Complete the main function of the vertex shader (Extra Credit Part II).
     }
   fragment_glsl_code()           // ********* FRAGMENT SHADER *********
