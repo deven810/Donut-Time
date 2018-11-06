@@ -20,7 +20,7 @@ class Assignment_Two_Test extends Scene_Component
                          planet_4: new Subdivision_Sphere(4),
                          moon: new (Subdivision_Sphere.prototype.make_flat_shaded_version() )(1),
                          thinRing: new Torus2(25, 30), //finer rings defined in dependencies.js
-                         planet_5: new weirdSphere(6,10)
+                         planet_5: new weirdSphere(6,6)
                        }
         this.submit_shapes( context, shapes );
                                      
